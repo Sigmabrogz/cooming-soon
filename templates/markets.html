@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Markets - Polymarket Tracker{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1 style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3em; margin-bottom: 10px; filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.6)); font-weight: 900; letter-spacing: -1px;">
+        📈 MARKET OPPORTUNITIES
+    </h1>
+    <p style="color: #9ca3af; font-size: 1.1em; font-weight: 600;">Find the best markets to trade</p>
+</div>
+
+<!-- What to Look For -->
+<div class="glass-card" style="background: rgba(220, 38, 38, 0.15); border-color: rgba(239, 68, 68, 0.4);">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="font-size: 4em;">💡</div>
+        <div>
+            <h3 style="background: linear-gradient(135deg, #fca5a5, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-size: 1.4em; font-weight: 900;">WHAT TO LOOK FOR</h3>
+            <p style="color: #e5e7eb; margin-bottom: 8px;">• <strong>High Volume:</strong> More trades = more liquidity & better prices</p>
+            <p style="color: #e5e7eb; margin-bottom: 8px;">• <strong>Good Liquidity:</strong> Easy to enter/exit positions without slippage</p>
+            <p style="color: #e5e7eb;">• <strong>Active Markets:</strong> Recent trading activity means current interest</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-label">Hottest Market</div>
+        <div class="stat-value" id="hottestMarket" style="font-size: 1.2em;">Loading...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💧</div>
+        <div class="stat-label">Best Liquidity</div>
+        <div class="stat-value" id="bestLiquidity">$0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-label">Total Markets</div>
+        <div class="stat-value" id="totalMarkets">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📂</div>
+        <div class="stat-label">Top Category</div>
+        <div class="stat-value" id="topCategory" style="font-size: 1.4em;">Loading...</div>
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="glass-card">
+    <h3 style="color: #e5e7eb; margin-bottom: 15px; font-weight: 700;">FILTER BY:</h3>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <button class="btn" onclick="filterMarkets('volume')" id="btnVolume">💰 HIGHEST VOLUME</button>
+        <button class="btn" onclick="filterMarkets('liquidity')" id="btnLiquidity">💧 BEST LIQUIDITY</button>
+        <button class="btn" onclick="loadMarkets()">🔄 REFRESH</button>
+    </div>
+</div>
+
+<!-- Top Opportunities -->
+<div class="glass-card">
+    <h2 style="background: linear-gradient(135deg, #ef4444, #991b1b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em; font-weight: 900; margin-bottom: 20px;">🎯 TOP OPPORTUNITIES</h2>
+    <div id="marketsLoading" style="text-align: center; padding: 60px; color: white;">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #9ca3af;">Loading markets...</p>
+    </div>
+    <div id="marketsGrid" style="display: none;"></div>
+</div>
+
+<div style="text-align: center; color: #6b7280; padding: 20px; font-size: 0.9em;">
+    Last updated: <span id="lastUpdated"></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allMarkets = [];
+    let currentSort = 'volume';
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    function calculateStats(markets) {
+        if (markets.length === 0) return;
+
+        const sorted = [...markets].sort((a, b) => b.volume - a.volume);
+        const bestLiq = [...markets].sort((a, b) => b.liquidity - a.liquidity)[0];
+        
+        document.getElementById('hottestMarket').textContent = sorted[0]?.title?.substring(0, 25) + '...' || 'N/A';
+        document.getElementById('bestLiquidity').textContent = formatCurrency(bestLiq?.liquidity || 0);
+        document.getElementById('totalMarkets').textContent = markets.length;
+
+        const categories = {};
+        markets.forEach(m => {
+            const cat = m.category || 'Other';
+            categories[cat] = (categories[cat] || 0) + m.volume;
+        });
+        const topCat = Object.entries(categories).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('topCategory').textContent = topCat ? topCat[0] : 'N/A';
+    }
+
+    async function loadMarkets() {
+        const loading = document.getElementById('marketsLoading');
+        const grid = document.getElementById('marketsGrid');
+        
+        loading.style.display = 'block';
+        grid.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/markets?limit=50');
+            const data = await response.json();
+
+            loading.style.display = 'none';
+
+            if (data.success) {
+                allMarkets = data.markets;
+                calculateStats(allMarkets);
+                displayMarkets(allMarkets.sort((a, b) => b.volume - a.volume));
+                document.getElementById('btnVolume').style.background = 'rgba(220, 38, 38, 0.4)';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            console.error('Error loading markets:', error);
+        }
+    }
+
+    function filterMarkets(type) {
+        let sorted = [...allMarkets];
+        
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.style.background = 'rgba(220, 38, 38, 0.2)';
+        });
+
+        if (type === 'volume') {
+            sorted.sort((a, b) => b.volume - a.volume);
+            document.getElementById('btnVolume').style.background = 'rgba(220, 38, 38, 0.4)';
+        } else if (type === 'liquidity') {
+            sorted.sort((a, b) => b.liquidity - a.liquidity);
+            document.getElementById('btnLiquidity').style.background = 'rgba(220, 38, 38, 0.4)';
+        }
+        
+        displayMarkets(sorted);
+    }
+
+    function getOpportunityScore(market) {
+        // Simple scoring: high volume + high liquidity = better opportunity
+        const volumeScore = market.volume / 1000000; // Normalize
+        const liquidityScore = market.liquidity / 100000; // Normalize
+        return volumeScore + liquidityScore;
+    }
+
+    function displayMarkets(markets) {
+        const grid = document.getElementById('marketsGrid');
+        
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">';
+        
+        markets.forEach((market, index) => {
+            const categoryColor = getCategoryColor(market.category);
+            const score = getOpportunityScore(market);
+            const isHot = score > 30 || index < 5;
+            
+            html += `
+                <div class="glass-card" style="padding: 25px; transition: all 0.3s ease; cursor: pointer; position: relative;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'">
+                    ${isHot ? '<div style="position: absolute; top: 15px; right: 15px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 900; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);">🔥 HOT</div>' : ''}
+                    
+                    <div style="margin-bottom: 15px;">
+                        <span style="background: ${categoryColor}; padding: 6px 14px; border-radius: 20px; font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            ${market.category || 'General'}
+                        </span>
+                    </div>
+                    
+                    <h3 style="color: #e5e7eb; font-size: 1.1em; margin-bottom: 15px; line-height: 1.4; min-height: 60px;">
+                        ${market.title}
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div style="background: rgba(16, 185, 129, 0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <div style="color: #9ca3af; font-size: 0.75em; margin-bottom: 4px;">VOLUME</div>
+                            <div style="color: #10b981; font-size: 1.1em; font-weight: 800;">${formatCurrency(market.volume)}</div>
+                        </div>
+                        <div style="background: rgba(96, 165, 250, 0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(96, 165, 250, 0.3);">
+                            <div style="color: #9ca3af; font-size: 0.75em; margin-bottom: 4px;">LIQUIDITY</div>
+                            <div style="color: #60a5fa; font-size: 1.1em; font-weight: 800;">${formatCurrency(market.liquidity)}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(30, 30, 30, 0.8); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        <div style="color: #9ca3af; font-size: 0.8em; margin-bottom: 5px;">OPPORTUNITY SCORE</div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="flex: 1; background: rgba(239, 68, 68, 0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, #ef4444, #dc2626); height: 100%; width: ${Math.min(score * 2, 100)}%; border-radius: 4px;"></div>
+                            </div>
+                            <div style="color: #ef4444; font-weight: 800;">${score.toFixed(0)}</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="window.open('https://polymarket.com/market/${market.slug}', '_blank')" style="width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
+                        📊 TRADE NOW
+                    </button>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        grid.innerHTML = html;
+        grid.style.display = 'block';
+    }
+
+    function getCategoryColor(category) {
+        const colors = {
+            'Politics': 'rgba(139, 92, 246, 0.3)',
+            'Sports': 'rgba(16, 185, 129, 0.3)',
+            'Crypto': 'rgba(251, 191, 36, 0.3)',
+            'Entertainment': 'rgba(236, 72, 153, 0.3)',
+            'Business': 'rgba(59, 130, 246, 0.3)',
+        };
+        return colors[category] || 'rgba(107, 114, 128, 0.3)';
+    }
+
+    function updateLastUpdated() {
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadMarkets();
+        updateLastUpdated();
+        
+        setInterval(() => {
+            loadMarkets();
+            updateLastUpdated();
+        }, 60000);
+    });
+</script>
+{% endblock %}

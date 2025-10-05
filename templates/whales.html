@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Live Whale Activity - Polymarket Tracker{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1 style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3em; margin-bottom: 10px; filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.6)); font-weight: 900; letter-spacing: -1px;">
+        🐋 WHALE ACTIVITY TRACKER
+    </h1>
+    <p style="color: #9ca3af; font-size: 1.1em; font-weight: 600;">Following the smart money - trades ≥ $10,000</p>
+</div>
+
+<!-- Key Insights -->
+<div class="glass-card" style="background: rgba(220, 38, 38, 0.15); border-color: rgba(239, 68, 68, 0.4);">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="font-size: 4em;">💡</div>
+        <div>
+            <h3 style="background: linear-gradient(135deg, #fca5a5, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-size: 1.4em; font-weight: 900;">WHY TRACK WHALES?</h3>
+            <p style="color: #e5e7eb; margin-bottom: 8px;">• <strong>Smart Money Signals:</strong> Large traders often have insider insights</p>
+            <p style="color: #e5e7eb; margin-bottom: 8px;">• <strong>Market Movers:</strong> $10k+ trades can shift market odds</p>
+            <p style="color: #e5e7eb;">• <strong>Early Warnings:</strong> Catch trends before the crowd</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Total Whale Volume (24h)</div>
+        <div class="stat-value" id="totalWhaleVolume">$0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-label">Active Whales Today</div>
+        <div class="stat-value" id="activeWhales">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-label">Most Active Market</div>
+        <div class="stat-value" id="hotMarket" style="font-size: 1.2em;">Loading...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-label">Buy/Sell Ratio</div>
+        <div class="stat-value" id="buySellRatio">-</div>
+    </div>
+</div>
+
+<!-- Live Alerts -->
+<div id="liveAlerts"></div>
+
+<!-- Top Whale Traders -->
+<div class="glass-card">
+    <h2 style="background: linear-gradient(135deg, #ef4444, #991b1b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em; font-weight: 900; margin-bottom: 20px;">🏆 TOP WHALE TRADERS (24H)</h2>
+    <div id="topTradersContent"></div>
+</div>
+
+<!-- Whale Trades Table -->
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h2 style="background: linear-gradient(135deg, #ef4444, #991b1b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em; font-weight: 900;">📊 ALL WHALE TRADES</h2>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="checkNewWhales()">🔄 CHECK NEW</button>
+            <button class="btn" onclick="loadWhales()">↻ REFRESH</button>
+        </div>
+    </div>
+    
+    <div id="whalesLoading" style="text-align: center; padding: 40px; color: white;">
+        <div class="spinner"></div>
+        <p style="color: #9ca3af;">Loading whale activity...</p>
+    </div>
+    
+    <div class="table-container" id="whalesContent" style="display: none;"></div>
+</div>
+
+<div style="text-align: center; color: #6b7280; padding: 20px; font-size: 0.9em;">
+    Auto-refresh every 10 seconds • Last updated: <span id="lastUpdated"></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let lastCheckTimestamp = 0;
+    let whaleData = [];
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    function calculateStats(whales) {
+        const totalVolume = whales.reduce((sum, w) => sum + w.value, 0);
+        const uniqueTraders = new Set(whales.map(w => w.wallet)).size;
+        
+        const marketCounts = {};
+        whales.forEach(w => {
+            marketCounts[w.market] = (marketCounts[w.market] || 0) + 1;
+        });
+        const hotMarket = Object.entries(marketCounts).sort((a, b) => b[1] - a[1])[0];
+        
+        const buyCount = whales.filter(w => w.side === 'BUY').length;
+        const sellCount = whales.filter(w => w.side === 'SELL').length;
+        const ratio = sellCount > 0 ? (buyCount / sellCount).toFixed(2) : buyCount;
+
+        document.getElementById('totalWhaleVolume').textContent = formatCurrency(totalVolume);
+        document.getElementById('activeWhales').textContent = uniqueTraders;
+        document.getElementById('hotMarket').textContent = hotMarket ? hotMarket[0].substring(0, 20) + '...' : 'N/A';
+        document.getElementById('buySellRatio').textContent = ratio + ':1';
+
+        // Show top traders
+        const traderVolumes = {};
+        whales.forEach(w => {
+            if (!traderVolumes[w.trader]) {
+                traderVolumes[w.trader] = { volume: 0, wallet: w.wallet, trades: 0 };
+            }
+            traderVolumes[w.trader].volume += w.value;
+            traderVolumes[w.trader].trades += 1;
+        });
+
+        const sorted = Object.entries(traderVolumes).sort((a, b) => b[1].volume - a[1].volume).slice(0, 5);
+        let html = '<div style="display: grid; gap: 15px;">';
+        sorted.forEach(([trader, data], index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+            html += `
+                <div style="background: rgba(30, 30, 30, 0.8); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="font-size: 2.5em;">${medal}</div>
+                        <div>
+                            <div style="color: #ef4444; font-weight: 700; font-size: 1.2em;">${trader}</div>
+                            <div style="color: #9ca3af; font-size: 0.9em;">${data.trades} trades</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em; font-weight: 900;">${formatCurrency(data.volume)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        document.getElementById('topTradersContent').innerHTML = html;
+    }
+
+    async function loadWhales() {
+        const loading = document.getElementById('whalesLoading');
+        const content = document.getElementById('whalesContent');
+        
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/whale-activity?limit=100');
+            const data = await response.json();
+
+            loading.style.display = 'none';
+
+            if (data.success && data.whales.length > 0) {
+                whaleData = data.whales;
+                calculateStats(whaleData);
+
+                let html = '<table><thead><tr>';
+                html += '<th>Time</th><th>Market</th><th>Outcome</th><th>Trader</th>';
+                html += '<th>Side</th><th>Value</th><th>Size @ Price</th><th>Links</th>';
+                html += '</tr></thead><tbody>';
+
+                data.whales.forEach(whale => {
+                    const time = new Date(whale.timestamp * 1000).toLocaleTimeString();
+                    const sideColor = whale.side === 'BUY' ? '#10b981' : '#ef4444';
+                    const polymarketUrl = whale.marketSlug ? 
+                        `https://polymarket.com/market/${whale.marketSlug}` : 
+                        'https://polymarket.com/';
+                    const polygonscanUrl = `https://polygonscan.com/tx/${whale.transactionHash}`;
+                    
+                    html += '<tr>';
+                    html += `<td style="white-space: nowrap; color: #9ca3af;">${time}</td>`;
+                    html += `<td style="max-width: 300px; color: #e5e7eb;">${whale.market}</td>`;
+                    html += `<td style="color: #9ca3af;">${whale.outcome || '-'}</td>`;
+                    html += `<td title="${whale.wallet}" style="color: #ef4444; font-weight: 600;">${whale.trader}</td>`;
+                    html += `<td><span style="color: ${sideColor}; font-weight: 800; background: ${whale.side === 'BUY' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; padding: 4px 12px; border-radius: 8px;">${whale.side}</span></td>`;
+                    html += `<td style="background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 1.1em;">${formatCurrency(whale.value)}</td>`;
+                    html += `<td style="white-space: nowrap; color: #9ca3af;">${whale.size.toFixed(0)} @ $${whale.price.toFixed(4)}</td>`;
+                    html += `<td style="white-space: nowrap;">`;
+                    html += `<a href="${polymarketUrl}" target="_blank" style="color: #60a5fa; text-decoration: none; margin-right: 10px;">📊</a>`;
+                    html += `<a href="${polygonscanUrl}" target="_blank" style="color: #10b981; text-decoration: none;">⛓️</a>`;
+                    html += `</td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                content.innerHTML = html;
+                content.style.display = 'block';
+            } else {
+                content.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No whale activity yet. Waiting for trades ≥ $10,000...</p>';
+                content.style.display = 'block';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            console.error('Error loading whales:', error);
+        }
+    }
+
+    function showWhaleAlert(whale) {
+        const alertsContainer = document.getElementById('liveAlerts');
+        const time = new Date(whale.timestamp * 1000).toLocaleString();
+        const sideColor = whale.side === 'BUY' ? '#10b981' : '#ef4444';
+        const polymarketUrl = whale.marketSlug ? 
+            `https://polymarket.com/market/${whale.marketSlug}` : 
+            'https://polymarket.com/';
+        const polygonscanUrl = `https://polygonscan.com/tx/${whale.transactionHash}`;
+        
+        const alertHtml = `
+            <div class="whale-alert">
+                <h4>🚨 WHALE ALERT - FOLLOW THE SMART MONEY</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div style="background: rgba(30, 30, 30, 0.8); padding: 15px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="color: #9ca3af; font-size: 0.85em; margin-bottom: 5px;">VALUE</div>
+                        <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2em; font-weight: 900;">${formatCurrency(whale.value)}</div>
+                    </div>
+                    <div style="background: rgba(30, 30, 30, 0.8); padding: 15px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="color: #9ca3af; font-size: 0.85em; margin-bottom: 5px;">TRADER</div>
+                        <div style="color: #ef4444; font-size: 1.3em; font-weight: 700;">${whale.trader}</div>
+                    </div>
+                    <div style="background: rgba(30, 30, 30, 0.8); padding: 15px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="color: #9ca3af; font-size: 0.85em; margin-bottom: 5px;">SIDE</div>
+                        <div style="color: ${sideColor}; font-size: 1.8em; font-weight: 900;">${whale.side}</div>
+                    </div>
+                    <div style="background: rgba(30, 30, 30, 0.8); padding: 15px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="color: #9ca3af; font-size: 0.85em; margin-bottom: 5px;">OUTCOME</div>
+                        <div style="color: #e5e7eb; font-size: 1.3em; font-weight: 700;">${whale.outcome || 'N/A'}</div>
+                    </div>
+                </div>
+                <div style="background: rgba(30, 30, 30, 0.9); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                    <div style="color: #e5e7eb; font-size: 1.15em; font-weight: 600; margin-bottom: 10px;">${whale.market}</div>
+                    <div style="color: #9ca3af; margin-bottom: 15px;">
+                        ${whale.size.toFixed(0)} shares @ $${whale.price.toFixed(4)} • ${time}
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="${polymarketUrl}" target="_blank" class="btn">📊 VIEW MARKET</a>
+                        <a href="${polygonscanUrl}" target="_blank" class="btn">⛓️ VERIFY TX</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        alertsContainer.innerHTML = alertHtml + alertsContainer.innerHTML;
+        
+        const alerts = alertsContainer.getElementsByClassName('whale-alert');
+        while (alerts.length > 3) {
+            alertsContainer.removeChild(alerts[alerts.length - 1]);
+        }
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('🐋 Whale Alert!', {
+                body: `${whale.trader} placed ${formatCurrency(whale.value)} ${whale.side} on ${whale.market}`,
+                icon: '🐋'
+            });
+        }
+    }
+
+    async function checkNewWhales() {
+        try {
+            const response = await fetch('/api/whale-activity/live');
+            const data = await response.json();
+
+            if (data.success && data.newWhales && data.newWhales.length > 0) {
+                data.newWhales.forEach(whale => showWhaleAlert(whale));
+                loadWhales();
+            }
+        } catch (error) {
+            console.error('Error checking for new whales:', error);
+        }
+    }
+
+    function updateLastUpdated() {
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadWhales();
+        updateLastUpdated();
+        
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        
+        setInterval(() => {
+            checkNewWhales();
+            updateLastUpdated();
+        }, 10000);
+    });
+</script>
+{% endblock %}
