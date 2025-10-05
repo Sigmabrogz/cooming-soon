@@ -54,6 +54,24 @@ python3 app.py
 
 Visit **http://localhost:8080** in your browser! 🎉
 
+## 🌐 Deploy to Production
+
+### Deploy to Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Sigmabrogz/cooming-soon)
+
+**Or manually:**
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy to production
+vercel --prod
+```
+
+Your app will be live at: `https://your-app.vercel.app` 🚀
+
 ## 📸 Screenshots
 
 ### Dashboard

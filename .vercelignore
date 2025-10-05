@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Testing
+.pytest_cache/
+.coverage
+
+# Logs
+*.log
+/tmp/
+nohup.out
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep in repo, but don't need in deployment)
+*.md
+!README.md
+
+# Examples (don't need in production)
+examples/
+demo_market_data.py
+test_installation.py
