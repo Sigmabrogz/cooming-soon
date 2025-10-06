@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Copy Trading - Polymarket{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1 style="color: #ef4444; font-size: 2.5em; margin-bottom: 10px; font-weight: 900;">🔄 Copy Trading</h1>
+    <p style="color: #9ca3af; font-size: 1.1em;">
+        Automatically follow and copy trades from successful traders. Learn by watching the pros!
+    </p>
+</div>
+
+<div class="glass-card" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4);">
+    <h2 style="color: #ef4444; font-size: 1.8em; margin-bottom: 15px; font-weight: 800;">🚧 Feature Coming Soon!</h2>
+    <p style="color: #e5e7eb; font-size: 1.1em; line-height: 1.8; margin-bottom: 20px;">
+        Copy trading requires an authenticated API connection to place orders on your behalf. 
+        This feature is currently in development and will be available soon!
+    </p>
+    <p style="color: #9ca3af; line-height: 1.8;">
+        <strong>What's needed:</strong>
+    </p>
+    <ul style="color: #9ca3af; line-height: 2; padding-left: 40px; margin-top: 10px;">
+        <li>API credentials (private key, API key, secret, passphrase)</li>
+        <li>USDC balance in your Polymarket wallet</li>
+        <li>Gas fees for transactions on Polygon network</li>
+    </ul>
+</div>
+
+<div class="glass-card">
+    <h2 style="color: #ef4444; font-size: 2em; margin-bottom: 20px; font-weight: 800;">💡 How Copy Trading Works</h2>
+    
+    <div style="margin-bottom: 30px;">
+        <h3 style="color: #ef4444; font-size: 1.5em; margin-bottom: 15px;">1️⃣ Choose a Trader to Follow</h3>
+        <p style="color: #e5e7eb; line-height: 1.8; margin-bottom: 10px;">
+            Browse our <a href="/traders" style="color: #ef4444; text-decoration: underline;">Top Traders leaderboard</a> 
+            and select traders based on:
+        </p>
+        <ul style="color: #e5e7eb; line-height: 2; padding-left: 40px;">
+            <li><strong>Win Rate:</strong> Higher is better (60%+ is excellent)</li>
+            <li><strong>Total Volume:</strong> Shows experience and activity level</li>
+            <li><strong>ROI:</strong> Measures profitability over time</li>
+            <li><strong>Risk Score:</strong> Lower scores indicate more consistent performance</li>
+        </ul>
+    </div>
+    
+    <div style="margin-bottom: 30px;">
+        <h3 style="color: #ef4444; font-size: 1.5em; margin-bottom: 15px;">2️⃣ Configure Copy Settings</h3>
+        <p style="color: #e5e7eb; line-height: 1.8; margin-bottom: 15px;">
+            Customize how you want to copy their trades:
+        </p>
+        <div style="background: rgba(15, 15, 15, 0.8); padding: 20px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.3);">
+            <ul style="color: #e5e7eb; line-height: 2.2; padding-left: 20px;">
+                <li><strong style="color: #ef4444;">Copy Percentage:</strong> Copy 10% of their trade size (adjustable)</li>
+                <li><strong style="color: #ef4444;">Max Position Size:</strong> Set maximum $ per position ($100 default)</li>
+                <li><strong style="color: #ef4444;">Max Total Exposure:</strong> Limit total capital deployed ($1000 default)</li>
+                <li><strong style="color: #ef4444;">Market Filters:</strong> Choose which markets to copy (or exclude)</li>
+                <li><strong style="color: #ef4444;">Min Trade Size:</strong> Only copy trades above certain size</li>
+                <li><strong style="color: #ef4444;">Auto Exit:</strong> Automatically copy their exit trades too</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 30px;">
+        <h3 style="color: #ef4444; font-size: 1.5em; margin-bottom: 15px;">3️⃣ Monitor Performance</h3>
+        <p style="color: #e5e7eb; line-height: 1.8;">
+            Track your copy trading performance in real-time. See which trades were copied, 
+            your P&L, and compare your results to the original trader.
+        </p>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h2 style="color: #ef4444; font-size: 2em; margin-bottom: 20px; font-weight: 800;">✅ Benefits of Copy Trading</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div style="background: rgba(15, 15, 15, 0.8); padding: 20px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 2em; margin-bottom: 10px;">📚</div>
+            <h3 style="color: #ef4444; margin-bottom: 10px;">Learn from Experts</h3>
+            <p style="color: #9ca3af;">Watch and learn from successful traders' strategies and decision-making.</p>
+        </div>
+        <div style="background: rgba(15, 15, 15, 0.8); padding: 20px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 2em; margin-bottom: 10px;">⏰</div>
+            <h3 style="color: #ef4444; margin-bottom: 10px;">Save Time</h3>
+            <p style="color: #9ca3af;">No need to research every market - let experienced traders do the analysis.</p>
+        </div>
+        <div style="background: rgba(15, 15, 15, 0.8); padding: 20px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 2em; margin-bottom: 10px;">🎯</div>
+            <h3 style="color: #ef4444; margin-bottom: 10px;">Better Results</h3>
+            <p style="color: #9ca3af;">Potentially achieve better returns by following proven traders.</p>
+        </div>
+        <div style="background: rgba(15, 15, 15, 0.8); padding: 20px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔧</div>
+            <h3 style="color: #ef4444; margin-bottom: 10px;">Full Control</h3>
+            <p style="color: #9ca3af;">Set limits, filters, and stop following anytime you want.</p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h2 style="color: #ef4444; font-size: 2em; margin-bottom: 20px; font-weight: 800;">⚠️ Important Considerations</h2>
+    <div style="color: #e5e7eb; line-height: 2;">
+        <p style="margin-bottom: 15px;">
+            <strong style="color: #ef4444;">Copy trading is not a guarantee:</strong> Past performance doesn't guarantee future results. 
+            Even the best traders have losing streaks.
+        </p>
+        <p style="margin-bottom: 15px;">
+            <strong style="color: #ef4444;">Understand the risks:</strong> You're still responsible for your trades. 
+            Make sure you understand what you're copying.
+        </p>
+        <p style="margin-bottom: 15px;">
+            <strong style="color: #ef4444;">Set appropriate limits:</strong> Never risk more than you can afford to lose. 
+            Use the maximum exposure settings wisely.
+        </p>
+        <p>
+            <strong style="color: #ef4444;">Monitor regularly:</strong> Check your copy trading performance regularly 
+            and adjust or stop following if needed.
+        </p>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h2 style="color: #ef4444; font-size: 2em; margin-bottom: 20px; font-weight: 800;">🎓 Example Scenario</h2>
+    <div style="background: rgba(15, 15, 15, 0.8); padding: 25px; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.3);">
+        <p style="color: #e5e7eb; line-height: 1.8; margin-bottom: 15px;">
+            <strong style="color: #ef4444;">Trader "CryptoWhale" makes a trade:</strong>
+        </p>
+        <ul style="color: #e5e7eb; line-height: 2.2; padding-left: 20px; margin-bottom: 20px;">
+            <li>Buys 1,000 shares of "Bitcoin to $100K by 2025" at $0.65</li>
+            <li>Total cost: $650</li>
+        </ul>
+        
+        <p style="color: #e5e7eb; line-height: 1.8; margin-bottom: 15px;">
+            <strong style="color: #10b981;">Your copy trading settings:</strong>
+        </p>
+        <ul style="color: #e5e7eb; line-height: 2.2; padding-left: 20px; margin-bottom: 20px;">
+            <li>Copy percentage: 10%</li>
+            <li>Max position size: $100</li>
+        </ul>
+        
+        <p style="color: #e5e7eb; line-height: 1.8; margin-bottom: 15px;">
+            <strong style="color: #ef4444;">What happens automatically:</strong>
+        </p>
+        <ul style="color: #e5e7eb; line-height: 2.2; padding-left: 20px;">
+            <li>System calculates: 10% of 1,000 shares = 100 shares</li>
+            <li>Cost would be: $65</li>
+            <li>Since $65 < $100 max, trade is copied</li>
+            <li>You buy 100 shares at $0.65</li>
+            <li>If Bitcoin hits $100K, your 100 shares pay $100</li>
+            <li><strong style="color: #10b981;">Your profit: $35 (54% return)</strong></li>
+        </ul>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h2 style="color: #ef4444; font-size: 2em; margin-bottom: 20px; font-weight: 800;">🚀 Get Started</h2>
+    <p style="color: #e5e7eb; font-size: 1.1em; line-height: 1.8; margin-bottom: 25px;">
+        While we finish building the automated copy trading feature, you can manually follow traders:
+    </p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <a href="/traders" class="btn" style="display: block; text-align: center; text-decoration: none;">
+            👥 Browse Top Traders
+        </a>
+        <a href="/whales" class="btn" style="display: block; text-align: center; text-decoration: none;">
+            🐋 Watch Live Trades
+        </a>
+        <a href="/how-to-bet" class="btn" style="display: block; text-align: center; text-decoration: none;">
+            💡 Learn How to Bet
+        </a>
+    </div>
+</div>
+{% endblock %}
+

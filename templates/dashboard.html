@@ -2,6 +2,163 @@
 
 {% block title %}Dashboard - Polymarket Whale Tracker{% endblock %}
 
+{% block extra_styles %}
+<style>
+    .playbook-callouts {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .playbook-callout {
+        background: rgba(15, 15, 15, 0.9);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        border-left: 4px solid rgba(239, 68, 68, 0.8);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 12px 30px rgba(220, 38, 38, 0.25);
+        line-height: 1.45;
+    }
+
+    .playbook-callout a {
+        color: #fde68a;
+        text-decoration: none;
+        border-bottom: 1px dotted rgba(250, 204, 21, 0.6);
+        font-weight: 700;
+    }
+
+    .playbook-callout a:hover {
+        color: #fef3c7;
+        border-bottom-color: rgba(250, 204, 21, 0.9);
+    }
+
+    .callout-headline {
+        font-size: 1em;
+        font-weight: 900;
+        letter-spacing: 1px;
+        color: #f87171;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }
+
+    .callout-subtitle {
+        color: #f3f4f6;
+        font-size: 1.1em;
+        font-weight: 800;
+        margin-bottom: 16px;
+        line-height: 1.35;
+    }
+
+    .callout-line {
+        color: #d1d5db;
+        font-size: 0.95em;
+        margin-bottom: 8px;
+    }
+
+    .callout-line span {
+        color: #9ca3af;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-right: 6px;
+        display: inline-block;
+        min-width: 130px;
+    }
+
+    .callout-hint {
+        color: #9ca3af;
+        margin-top: 12px;
+        font-size: 0.9em;
+    }
+
+    .callout-hint strong {
+        color: #f87171;
+    }
+
+    .playbook-callout.mini {
+        padding: 18px;
+        border-left-width: 3px;
+        box-shadow: none;
+        background: rgba(17, 17, 17, 0.85);
+    }
+
+    .playbook-callout.mini .callout-headline {
+        margin-bottom: 10px;
+        font-size: 0.85em;
+    }
+
+    .playbook-callout.mini .callout-subtitle {
+        font-size: 1em;
+        margin-bottom: 12px;
+    }
+
+    .playbook-callout.mini .callout-line span {
+        min-width: 110px;
+    }
+
+    .playbook-lists {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .callout-panel {
+        background: rgba(15, 15, 15, 0.85);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .callout-panel h3 {
+        font-size: 1em;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        color: #fca5a5;
+        text-transform: uppercase;
+    }
+
+    .callout-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .insight-empty {
+        color: #6b7280;
+        font-size: 0.9em;
+        text-align: center;
+        padding: 16px 0;
+    }
+
+    .insight-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 30px;
+        color: #9ca3af;
+    }
+
+    @media (max-width: 768px) {
+        .playbook-callout {
+            padding: 20px;
+        }
+
+        .callout-line span {
+            display: block;
+            margin-bottom: 4px;
+            min-width: auto;
+        }
+
+        .playbook-lists {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="glass-card">
     <h1 style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3em; margin-bottom: 10px; filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.6)); font-weight: 900; letter-spacing: -1px;">
@@ -31,6 +188,35 @@
         <div class="stat-icon">🐋</div>
         <div class="stat-label">Whale Trades (24h)</div>
         <div class="stat-value" id="whaleCount">Loading...</div>
+    </div>
+</div>
+
+<!-- Trader Playbook -->
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div>
+            <h2 style="background: linear-gradient(135deg, #ef4444, #991b1b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8em; font-weight: 900;">🧠 TRADER PLAYBOOK</h2>
+            <p style="color: #9ca3af; font-size: 0.95em; margin-top: 6px; max-width: 640px;">Actionable signals to align intuition with data – momentum, timing windows, and whale flow distilled into quick reads before you place a bet.</p>
+        </div>
+        <button class="btn" onclick="loadDashboardInsights(true)">🔁 Refresh signals</button>
+    </div>
+
+    <div id="playbookLoading" class="insight-loading">
+        <div class="spinner"></div>
+        <p>Crunching on-chain sentiment and volume...</p>
+    </div>
+
+    <div id="actionCards" class="playbook-callouts" style="display: none;"></div>
+
+    <div class="playbook-lists">
+        <div class="callout-panel">
+            <h3>⏳ Closing Soon</h3>
+            <div id="closingSoonList" class="callout-list"></div>
+        </div>
+        <div class="callout-panel">
+            <h3>🐋 Whale Focus</h3>
+            <div id="whaleLeaderboard" class="callout-list"></div>
+        </div>
     </div>
 </div>
 
@@ -67,6 +253,9 @@
 {% block scripts %}
 <script>
     function formatCurrency(value) {
+        if (typeof value !== 'number' || isNaN(value)) {
+            return 'N/A';
+        }
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
@@ -76,7 +265,78 @@
     }
 
     function formatNumber(value) {
+        if (typeof value !== 'number' || isNaN(value)) {
+            return 'N/A';
+        }
         return new Intl.NumberFormat('en-US').format(Math.round(value));
+    }
+
+    function formatPercent(value) {
+        if (typeof value !== 'number' || isNaN(value)) {
+            return 'N/A';
+        }
+        return `${Math.round(value)}%`;
+    }
+
+    function formatHours(value) {
+        if (typeof value !== 'number' || isNaN(value)) {
+            return 'N/A';
+        }
+        if (value < 0) {
+            return 'Expired';
+        }
+        if (value < 1) {
+            const minutes = Math.max(1, Math.round(value * 60));
+            return `${minutes} min`;
+        }
+        if (value < 24) {
+            return `${value.toFixed(1)} h`;
+        }
+        return `${(value / 24).toFixed(1)} d`;
+    }
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatValueByFormat(point) {
+        const { value, format } = point || {};
+        switch (format) {
+            case 'currency':
+                return (typeof value === 'number' && !isNaN(value)) ? formatCurrency(value) : 'N/A';
+            case 'percent':
+                return formatPercent(value);
+            case 'hours':
+                return formatHours(value);
+            case 'text':
+                return value ? escapeHtml(value) : 'N/A';
+            default:
+                return (typeof value === 'number' && !isNaN(value)) ? formatNumber(value) : 'N/A';
+        }
+    }
+
+    function renderSentimentLabel(sentiment, type) {
+        if (!sentiment) {
+            return type === 'whale' ? 'Watching recent whale flow' : 'Sentiment unavailable';
+        }
+        const confidence = (typeof sentiment.confidence === 'number' && !isNaN(sentiment.confidence))
+            ? ` • Confidence ${Math.round(sentiment.confidence)}%`
+            : '';
+        return `${escapeHtml(sentiment.sentiment || 'Sentiment')}${confidence}`;
+    }
+
+    function renderDataPoint(point) {
+        const label = escapeHtml(point?.label || 'Stat');
+        const value = formatValueByFormat(point);
+        return `<p class="callout-line"><span>${label}</span>${value}</p>`;
     }
 
     async function loadStats() {
@@ -86,16 +346,28 @@
 
             if (data.success) {
                 const stats = data.stats;
-                document.getElementById('totalVolume').textContent = formatCurrency(stats.totalVolume);
-                document.getElementById('totalLiquidity').textContent = formatCurrency(stats.totalLiquidity);
-                document.getElementById('activeMarkets').textContent = formatNumber(stats.activeMarkets);
+                const totalVolumeEl = document.getElementById('totalVolume');
+                const totalLiquidityEl = document.getElementById('totalLiquidity');
+                const activeMarketsEl = document.getElementById('activeMarkets');
+
+                if (totalVolumeEl) {
+                    totalVolumeEl.textContent = formatCurrency(stats.totalVolume);
+                }
+                if (totalLiquidityEl) {
+                    totalLiquidityEl.textContent = formatCurrency(stats.totalLiquidity);
+                }
+                if (activeMarketsEl) {
+                    activeMarketsEl.textContent = formatNumber(stats.activeMarkets);
+                }
             }
 
-            // Get whale count
             const whaleResponse = await fetch('/api/whale-activity?limit=100');
             const whaleData = await whaleResponse.json();
             if (whaleData.success) {
-                document.getElementById('whaleCount').textContent = formatNumber(whaleData.count);
+                const whaleCountEl = document.getElementById('whaleCount');
+                if (whaleCountEl) {
+                    whaleCountEl.textContent = formatNumber(whaleData.count);
+                }
             }
         } catch (error) {
             console.error('Error loading stats:', error);
@@ -106,25 +378,33 @@
         const loading = document.getElementById('marketsLoading');
         const content = document.getElementById('marketsContent');
         
-        loading.style.display = 'block';
-        content.style.display = 'none';
+        if (loading) {
+            loading.style.display = 'block';
+        }
+        if (content) {
+            content.style.display = 'none';
+        }
 
         try {
             const response = await fetch('/api/markets?limit=10');
             const data = await response.json();
 
-            loading.style.display = 'none';
+            if (loading) {
+                loading.style.display = 'none';
+            }
 
-            if (data.success) {
+            if (data.success && content) {
                 let html = '<table><thead><tr>';
                 html += '<th>#</th><th>Market</th><th>Category</th><th>Volume</th><th>Liquidity</th>';
                 html += '</tr></thead><tbody>';
 
                 data.markets.forEach((market, index) => {
+                    const title = escapeHtml(market.title);
+                    const category = escapeHtml(market.category);
                     html += '<tr>';
                     html += `<td>${index + 1}</td>`;
-                    html += `<td style="max-width: 400px;">${market.title}</td>`;
-                    html += `<td><span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 0.85em;">${market.category}</span></td>`;
+                    html += `<td style="max-width: 400px;">${title}</td>`;
+                    html += `<td><span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 0.85em;">${category}</span></td>`;
                     html += `<td style="color: #4ade80; font-weight: 600;">${formatCurrency(market.volume)}</td>`;
                     html += `<td style="color: #60a5fa; font-weight: 600;">${formatCurrency(market.liquidity)}</td>`;
                     html += '</tr>';
@@ -135,8 +415,202 @@
                 content.style.display = 'block';
             }
         } catch (error) {
-            loading.style.display = 'none';
+            if (loading) {
+                loading.style.display = 'none';
+            }
             console.error('Error loading markets:', error);
+        }
+    }
+
+    function renderActionCards(cardsData = []) {
+        const container = document.getElementById('actionCards');
+        const loading = document.getElementById('playbookLoading');
+        if (!container) {
+            return;
+        }
+
+        if (loading) {
+            loading.style.display = 'none';
+        }
+
+        container.style.display = 'grid';
+
+        if (!cardsData.length) {
+            container.innerHTML = `
+                <div class="playbook-callout">
+                    <p class="callout-headline">🧠 Playbook Watch</p>
+                    <p class="callout-line"><span>Status</span>Monitoring for high-conviction signals...</p>
+                    <p class="callout-hint">Keep an eye on the live whale alerts for fresh setups.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const typeMeta = {
+            momentum: { headline: '🚀 Momentum Signal' },
+            closing: { headline: '⏳ Closing Window' },
+            whale: { headline: '🐋 Whale Flow' },
+            default: { headline: '🧠 Playbook Signal' },
+        };
+
+        const html = cardsData.map((card) => {
+            const type = card.type || 'default';
+            const meta = typeMeta[type] || typeMeta.default;
+            const marketName = escapeHtml(card.market || 'Market');
+            const marketLink = card.slug ? `https://polymarket.com/market/${card.slug}` : null;
+            const marketHtml = marketLink ? `<a href="${marketLink}" target="_blank" rel="noopener">${marketName}</a>` : marketName;
+            const sentimentLabel = renderSentimentLabel(card.sentiment, type);
+            const categoryLine = card.category ? `<p class="callout-line"><span>Category</span>${escapeHtml(card.category)}</p>` : '';
+            const dataPoints = (card.dataPoints || []).map(renderDataPoint).join('');
+            const hint = card.hint ? `<p class="callout-hint">${escapeHtml(card.hint)}</p>` : '';
+
+            return `
+                <div class="playbook-callout">
+                    <p class="callout-headline">${escapeHtml(meta.headline)}</p>
+                    <p class="callout-subtitle">${marketHtml}</p>
+                    ${categoryLine}
+                    <p class="callout-line"><span>Signal</span>${sentimentLabel}</p>
+                    ${dataPoints}
+                    ${hint}
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    function renderClosingSoon(markets = []) {
+        const container = document.getElementById('closingSoonList');
+        if (!container) {
+            return;
+        }
+
+        if (!markets.length) {
+            container.innerHTML = `
+                <div class="playbook-callout mini">
+                    <p class="callout-headline">⏳ Closing Soon</p>
+                    <p class="callout-line"><span>Status</span>No high-liquidity markets closing within 72 hours.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const html = markets.map((market) => {
+            const marketName = escapeHtml(market.market || 'Market');
+            const marketLink = market.slug ? `https://polymarket.com/market/${market.slug}` : null;
+            const marketHtml = marketLink ? `<a href="${marketLink}" target="_blank" rel="noopener">${marketName}</a>` : marketName;
+            const categoryLine = market.category ? `<p class="callout-line"><span>Category</span>${escapeHtml(market.category)}</p>` : '';
+            const hoursLine = `<p class="callout-line"><span>Hours Left</span>${formatHours(market.hoursToClose)}</p>`;
+            const volumeLine = `<p class="callout-line"><span>24h Volume</span>${formatCurrency(market.volume)}</p>`;
+            const liquidityLine = `<p class="callout-line"><span>Liquidity</span>${formatCurrency(market.liquidity)}</p>`;
+            const impliedLine = (typeof market.impliedProbability === 'number' && !isNaN(market.impliedProbability))
+                ? `<p class="callout-line"><span>Implied Yes</span>${Math.round(market.impliedProbability)}%</p>`
+                : '';
+
+            return `
+                <div class="playbook-callout mini">
+                    <p class="callout-headline">⏳ Closing Soon</p>
+                    <p class="callout-subtitle">${marketHtml}</p>
+                    ${categoryLine}
+                    ${hoursLine}
+                    ${volumeLine}
+                    ${liquidityLine}
+                    ${impliedLine}
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    function renderWhaleLeaderboard(rows = []) {
+        const container = document.getElementById('whaleLeaderboard');
+        if (!container) {
+            return;
+        }
+
+        if (!rows.length) {
+            container.innerHTML = `
+                <div class="playbook-callout mini">
+                    <p class="callout-headline">🐋 Whale Flow</p>
+                    <p class="callout-line"><span>Status</span>No concentrated whale flow in the last moves.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const html = rows.map((row) => {
+            const marketName = escapeHtml(row.market || 'Market');
+            const marketLink = row.slug ? `https://polymarket.com/market/${row.slug}` : null;
+            const marketHtml = marketLink ? `<a href="${marketLink}" target="_blank" rel="noopener">${marketName}</a>` : marketName;
+            const buyLabel = formatCurrency(row.buyVolume);
+            const sellLabel = formatCurrency(row.sellVolume);
+
+            let netValue = 'N/A';
+            let skew = '';
+            if (typeof row.buyVolume === 'number' && typeof row.sellVolume === 'number' && !isNaN(row.buyVolume) && !isNaN(row.sellVolume)) {
+                const net = row.buyVolume - row.sellVolume;
+                netValue = formatCurrency(net);
+                if (net > 0) {
+                    skew = 'Buy leaning';
+                } else if (net < 0) {
+                    skew = 'Sell leaning';
+                } else {
+                    skew = 'Balanced flow';
+                }
+            }
+
+            const skewLine = skew ? `<p class="callout-line"><span>Skew</span>${escapeHtml(skew)}</p>` : '';
+
+            return `
+                <div class="playbook-callout mini">
+                    <p class="callout-headline">🐋 Whale Flow</p>
+                    <p class="callout-subtitle">${marketHtml}</p>
+                    <p class="callout-line"><span>Buy Flow</span>${buyLabel}</p>
+                    <p class="callout-line"><span>Sell Flow</span>${sellLabel}</p>
+                    <p class="callout-line"><span>Net</span>${netValue}</p>
+                    ${skewLine}
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    async function loadDashboardInsights(isManualRefresh = false) {
+        const loading = document.getElementById('playbookLoading');
+        const cardsContainer = document.getElementById('actionCards');
+
+        if (loading) {
+            loading.style.display = 'flex';
+            const loadingText = loading.querySelector('p');
+            if (loadingText) {
+                loadingText.textContent = isManualRefresh ? 'Refreshing signals...' : 'Crunching on-chain sentiment and volume...';
+            }
+        }
+
+        if (cardsContainer) {
+            cardsContainer.style.display = 'none';
+            cardsContainer.innerHTML = '';
+        }
+
+        try {
+            const response = await fetch('/api/dashboard/insights');
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load insights');
+            }
+
+            renderActionCards(data.actionCards || []);
+            renderClosingSoon(data.closingSoon || []);
+            renderWhaleLeaderboard(data.whaleLeaderboard || []);
+        } catch (error) {
+            console.error('Error loading dashboard insights:', error);
+            if (loading) {
+                loading.style.display = 'flex';
+                loading.innerHTML = '<p style="color: #ef4444; text-align: center;">Unable to load playbook insights right now.</p>';
+            }
         }
     }
 
@@ -157,11 +631,11 @@
                         <div style="background: rgba(30, 30, 30, 0.8); padding: 20px; border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(239, 68, 68, 0.2); transition: all 0.3s ease;" onmouseover="this.style.transform='translateX(5px)'" onmouseout="this.style.transform='translateX(0)'">
                             <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
                                 <div style="flex: 1;">
-                                    <div style="color: #e5e7eb; font-weight: 700; margin-bottom: 8px; font-size: 1.05em;">${whale.market}</div>
+                                    <div style="color: #e5e7eb; font-weight: 700; margin-bottom: 8px; font-size: 1.05em;">${escapeHtml(whale.market)}</div>
                                     <div style="color: #9ca3af; font-size: 0.9em; margin-bottom: 8px;">
-                                        <span style="color: ${sideColor}; font-weight: 800; background: ${sideBg}; padding: 3px 10px; border-radius: 6px;">${whale.side}</span> 
-                                        <span style="color: #e5e7eb;">${whale.outcome}</span> • 
-                                        By <strong style="color: #ef4444;">${whale.trader}</strong>
+                                        <span style="color: ${sideColor}; font-weight: 800; background: ${sideBg}; padding: 3px 10px; border-radius: 6px;">${escapeHtml(whale.side)}</span> 
+                                        <span style="color: #e5e7eb;">${escapeHtml(whale.outcome)}</span> • 
+                                        By <strong style="color: #ef4444;">${escapeHtml(whale.trader)}</strong>
                                     </div>
                                     <div style="color: #6b7280; font-size: 0.85em;">${time}</div>
                                 </div>
@@ -174,9 +648,15 @@
                 });
                 
                 html += '</div>';
-                document.getElementById('whalesPreview').innerHTML = html;
+                const preview = document.getElementById('whalesPreview');
+                if (preview) {
+                    preview.innerHTML = html;
+                }
             } else {
-                document.getElementById('whalesPreview').innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No whale activity yet. Monitoring for trades ≥ $10,000...</p>';
+                const preview = document.getElementById('whalesPreview');
+                if (preview) {
+                    preview.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No whale activity yet. Monitoring for trades ≥ $10,000...</p>';
+                }
             }
         } catch (error) {
             console.error('Error loading whales:', error);
@@ -185,23 +665,29 @@
 
     function updateLastUpdated() {
         const now = new Date();
-        document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        if (lastUpdatedEl) {
+            lastUpdatedEl.textContent = now.toLocaleTimeString();
+        }
     }
 
-    // Load all data on page load
     window.addEventListener('DOMContentLoaded', () => {
         loadStats();
         loadMarkets();
         loadWhalesPreview();
+        loadDashboardInsights();
         updateLastUpdated();
         
-        // Auto-refresh every 60 seconds
         setInterval(() => {
             loadStats();
             loadMarkets();
             loadWhalesPreview();
             updateLastUpdated();
         }, 60000);
+
+        setInterval(() => {
+            loadDashboardInsights();
+        }, 120000);
     });
 </script>
 {% endblock %}
